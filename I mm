@@ -1,0 +1,3467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#07050b">
+<meta name="description" content="Anime.in — watch, discover, upload and share anime videos.">
+<title>Anime.in — Anime Video Platform</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+background:#07050b;
+color:#fff;
+font-family:Arial,Helvetica,sans-serif;
+min-height:100vh;
+overflow-x:hidden
+}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}
+img{max-width:100%}
+.hidden{display:none!important}
+
+.header{
+position:sticky;
+top:0;
+z-index:1000;
+height:68px;
+display:flex;
+align-items:center;
+gap:14px;
+padding:0 18px;
+background:rgba(7,5,11,.86);
+backdrop-filter:blur(18px);
+border-bottom:1px solid rgba(255,255,255,.07)
+}
+
+.logo{
+font-size:26px;
+font-weight:900;
+white-space:nowrap
+}
+.logo span{color:#ff1744}
+
+.header-search{
+flex:1;
+max-width:600px;
+position:relative
+}
+
+.header-search input{
+width:100%;
+height:42px;
+padding:0 45px 0 15px;
+border-radius:13px;
+border:1px solid rgba(255,255,255,.09);
+outline:none;
+background:rgba(255,255,255,.055);
+color:#fff
+}
+
+.header-search button{
+position:absolute;
+right:5px;
+top:5px;
+width:32px;
+height:32px;
+border:0;
+border-radius:9px;
+background:#ff1744;
+color:#fff
+}
+
+.header-actions{
+display:flex;
+gap:7px
+}
+
+.btn{
+border:0;
+border-radius:11px;
+padding:10px 13px;
+color:#fff;
+background:rgba(255,255,255,.07);
+font-weight:800
+}
+
+.btn.primary{
+background:linear-gradient(135deg,#ff1744,#b000ff)
+}
+
+.btn:hover{filter:brightness(1.08)}
+
+.main{
+width:min(1400px,100%);
+margin:auto;
+padding:20px
+}
+
+.hero{
+position:relative;
+overflow:hidden;
+border-radius:24px;
+padding:48px 30px;
+margin-bottom:30px;
+background:
+radial-gradient(circle at 80% 30%,rgba(255,23,68,.25),transparent 35%),
+radial-gradient(circle at 20% 80%,rgba(160,0,255,.18),transparent 35%),
+#0d0913;
+border:1px solid rgba(255,255,255,.06)
+}
+
+.hero small{
+color:#ff1744;
+letter-spacing:5px;
+font-weight:900
+}
+
+.hero h1{
+font-size:clamp(42px,8vw,76px);
+margin:12px 0
+}
+
+.hero h1 span{color:#ff1744}
+
+.hero p{
+color:#aaa3b0;
+font-size:17px;
+margin-bottom:20px
+}
+
+.hero-actions{
+display:flex;
+gap:10px;
+flex-wrap:wrap
+}
+
+.section{margin:30px 0}
+
+.section-head{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:14px
+}
+
+.section-head h2{font-size:22px}
+.section-head span{
+color:#00c8ff;
+font-size:13px
+}
+
+.filters{
+display:flex;
+gap:8px;
+overflow:auto;
+padding-bottom:4px;
+margin-bottom:18px
+}
+
+.filter{
+white-space:nowrap;
+border:1px solid rgba(255,255,255,.08);
+background:rgba(255,255,255,.05);
+color:#aaa3b0;
+border-radius:10px;
+padding:9px 13px;
+font-weight:800
+}
+
+.filter.active{
+background:#ff1744;
+color:#fff;
+border-color:#ff1744
+}
+.video-grid{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:16px
+}
+
+.card{
+min-width:0;
+cursor:pointer
+}
+
+.thumb{
+position:relative;
+aspect-ratio:16/9;
+border-radius:13px;
+overflow:hidden;
+background:#130d16
+}
+
+.thumb img{
+width:100%;
+height:100%;
+object-fit:cover;
+display:block
+}
+
+.play{
+position:absolute;
+inset:0;
+display:flex;
+align-items:center;
+justify-content:center;
+background:rgba(0,0,0,.18);
+opacity:0;
+transition:.2s
+}
+
+.card:hover .play{opacity:1}
+
+.play b{
+width:48px;
+height:48px;
+border-radius:50%;
+display:grid;
+place-items:center;
+background:#ff1744
+}
+
+.card-title{
+font-weight:800;
+font-size:13px;
+margin-top:9px;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis
+}
+
+.card-meta{
+color:#77717e;
+font-size:10px;
+margin-top:5px
+}
+
+.card-actions{
+display:flex;
+gap:5px;
+margin-top:8px
+}
+
+.mini{
+border:0;
+border-radius:8px;
+background:rgba(255,255,255,.05);
+color:#aaa3b0;
+padding:6px 8px;
+font-size:10px
+}
+
+.shorts{
+display:grid;
+grid-template-columns:repeat(6,1fr);
+gap:12px
+}
+
+.short{
+position:relative;
+aspect-ratio:9/16;
+border-radius:15px;
+overflow:hidden;
+background:#120c15;
+cursor:pointer
+}
+
+.short img{
+width:100%;
+height:100%;
+object-fit:cover
+}
+
+.short-info{
+position:absolute;
+left:0;
+right:0;
+bottom:0;
+padding:35px 9px 9px;
+background:linear-gradient(transparent,rgba(0,0,0,.9))
+}
+
+.short-title{
+font-size:11px;
+font-weight:800;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis
+}
+
+.short-meta{
+font-size:9px;
+color:#aaa3b0;
+margin-top:4px
+}
+
+.series-grid{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:14px
+}
+
+.series-card{
+border-radius:14px;
+overflow:hidden;
+background:#110c14;
+border:1px solid rgba(255,255,255,.06);
+cursor:pointer
+}
+
+.series-card img{
+width:100%;
+aspect-ratio:16/8;
+object-fit:cover
+}
+
+.series-card div{
+padding:10px;
+font-weight:800
+}
+
+.empty{
+padding:40px;
+text-align:center;
+color:#77717e;
+border:1px dashed rgba(255,255,255,.08);
+border-radius:15px
+}
+
+.modal{
+position:fixed;
+inset:0;
+z-index:5000;
+display:none;
+align-items:center;
+justify-content:center;
+padding:15px;
+background:rgba(0,0,0,.82);
+backdrop-filter:blur(12px)
+}
+
+.modal.show{display:flex}
+
+.box{
+width:min(650px,100%);
+max-height:92vh;
+overflow:auto;
+padding:22px;
+border-radius:20px;
+background:#110d16;
+border:1px solid rgba(255,255,255,.08);
+box-shadow:0 30px 100px rgba(0,0,0,.65)
+}
+
+.box.wide{
+width:min(950px,100%)
+}
+
+.top{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:18px
+}
+
+.close{
+width:35px;
+height:35px;
+border:0;
+border-radius:9px;
+background:rgba(255,255,255,.06);
+color:#fff;
+font-size:20px
+}
+
+.tabs{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:6px;
+padding:5px;
+background:rgba(255,255,255,.04);
+border-radius:12px;
+margin-bottom:15px
+}
+
+.tab{
+border:0;
+background:transparent;
+color:#99929f;
+padding:10px;
+border-radius:8px;
+font-weight:800
+}
+
+.tab.active{
+background:#ff1744;
+color:#fff
+}
+
+.field{
+margin-top:12px
+}
+
+.field label{
+display:block;
+color:#bbb4c1;
+font-size:12px;
+margin-bottom:6px
+}
+
+.input,
+.textarea,
+.select{
+width:100%;
+border:1px solid rgba(255,255,255,.09);
+border-radius:11px;
+background:rgba(255,255,255,.05);
+color:#fff;
+outline:none;
+padding:11px
+}
+
+.input{
+height:44px
+}
+
+.textarea{
+min-height:90px;
+resize:vertical
+}
+
+.select{
+height:44px
+}
+
+.form-btn{
+width:100%;
+height:45px;
+margin-top:16px;
+border:0;
+border-radius:11px;
+background:linear-gradient(135deg,#ff1744,#b000ff);
+color:#fff;
+font-weight:900
+}
+
+.message{
+margin-top:12px;
+padding:10px;
+border-radius:10px;
+font-size:12px;
+background:rgba(255,23,68,.12);
+color:#ff7892
+}
+
+.forgot{
+display:block;
+width:100%;
+margin-top:9px;
+border:0;
+background:transparent;
+color:#ff5273;
+font-size:12px
+}
+
+.upload-box{
+padding:15px;
+border-radius:14px;
+background:rgba(255,255,255,.035);
+border:1px solid rgba(255,255,255,.07);
+margin-top:12px
+}
+
+.progress{
+height:8px;
+border-radius:99px;
+background:#211922;
+overflow:hidden;
+margin-top:10px
+}
+
+.progress i{
+display:block;
+height:100%;
+width:0;
+background:linear-gradient(90deg,#ff1744,#b000ff)
+}
+.player{
+position:fixed;
+inset:0;
+z-index:6500;
+display:none;
+background:#050408;
+overflow:auto
+}
+
+.player.show{
+display:block
+}
+
+.player-inner{
+width:min(1100px,100%);
+margin:auto;
+padding:14px
+}
+
+.player video{
+width:100%;
+max-height:72vh;
+background:#000;
+border-radius:15px
+}
+
+.player-title{
+font-size:21px;
+font-weight:900;
+margin-top:13px
+}
+
+.player-meta{
+color:#77717e;
+font-size:11px;
+margin-top:5px
+}
+
+.player-actions{
+display:flex;
+gap:7px;
+flex-wrap:wrap;
+margin-top:12px
+}
+
+.description{
+margin-top:13px;
+padding:13px;
+border-radius:12px;
+background:rgba(255,255,255,.035);
+color:#aaa3b0;
+font-size:12px;
+line-height:1.6
+}
+
+.comment-form{
+display:flex;
+gap:7px;
+margin-top:10px
+}
+
+.comment-form input{
+flex:1
+}
+
+.comment{
+padding:10px;
+border-radius:10px;
+background:rgba(255,255,255,.035);
+margin-top:8px
+}
+
+.comment strong{
+font-size:11px
+}
+
+.comment p{
+color:#aaa3b0;
+font-size:11px;
+margin-top:4px
+}
+
+.next{
+margin-top:16px;
+padding:11px;
+border-radius:12px;
+background:rgba(255,255,255,.035);
+display:flex;
+gap:10px;
+align-items:center;
+cursor:pointer
+}
+
+.next img{
+width:105px;
+height:60px;
+object-fit:cover;
+border-radius:8px
+}
+
+.next div{
+min-width:0
+}
+
+.next b{
+font-size:12px;
+display:block;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis
+}
+
+.profile{
+text-align:center
+}
+
+.avatar{
+width:82px;
+height:82px;
+border-radius:50%;
+object-fit:cover;
+background:#21151d
+}
+
+.stats{
+display:flex;
+justify-content:center;
+gap:28px;
+margin:16px 0
+}
+
+.stat b{
+display:block;
+font-size:18px
+}
+
+.stat small{
+color:#77717e
+}
+
+.toast{
+position:fixed;
+left:50%;
+bottom:20px;
+z-index:9999;
+transform:translate(-50%,20px);
+opacity:0;
+pointer-events:none;
+background:#17121b;
+border:1px solid rgba(255,255,255,.08);
+padding:11px 15px;
+border-radius:11px;
+font-size:12px;
+font-weight:800;
+transition:.25s
+}
+
+.toast.show{
+opacity:1;
+transform:translate(-50%,0)
+}
+
+@media(max-width:950px){
+.video-grid{
+grid-template-columns:repeat(3,1fr)
+}
+
+.series-grid{
+grid-template-columns:repeat(3,1fr)
+}
+
+.shorts{
+grid-template-columns:repeat(5,1fr)
+}
+}
+
+@media(max-width:700px){
+.header{
+height:auto;
+flex-wrap:wrap;
+padding:12px
+}
+
+.logo{
+font-size:23px
+}
+
+.header-search{
+order:3;
+flex-basis:100%;
+margin:0
+}
+
+.main{
+padding:12px
+}
+
+.hero{
+padding:32px 20px
+}
+
+.video-grid{
+grid-template-columns:repeat(2,1fr);
+gap:11px
+}
+
+.series-grid{
+grid-template-columns:repeat(2,1fr)
+}
+
+.shorts{
+grid-template-columns:repeat(3,1fr)
+}
+}
+
+@media(max-width:430px){
+.header-actions .btn{
+padding:8px 9px;
+font-size:11px
+}
+
+.hero h1{
+font-size:44px
+}
+
+.shorts{
+grid-template-columns:repeat(2,1fr)
+}
+}
+
+</style>
+</head>
+
+<body>
+
+<header class="header">
+<div class="logo">Anime<span>.in</span></div>
+
+<div class="header-search">
+<input id="searchInput" placeholder="Search anime, videos, series..." oninput="renderHome()">
+<button onclick="renderHome()">🔎</button>
+</div>
+
+<div class="header-actions">
+<button class="btn" id="accountBtn" onclick="openAuth()">👤 Login</button>
+<button class="btn primary" onclick="openCreate()">＋ Create</button>
+</div>
+</header>
+
+<main class="main">
+
+<section class="hero">
+<small>WELCOME TO</small>
+
+<h1>Anime<span>.in</span></h1>
+
+<p>Watch • Discover • Share Anime</p>
+
+<div class="hero-actions">
+<button class="btn primary" onclick="document.getElementById('seriesSection').scrollIntoView()">
+📚 Explore Series
+</button>
+
+<button class="btn" onclick="openCreate()">
+🚀 Upload Anime
+</button>
+</div>
+</section>
+
+<section class="section" id="seriesSection">
+
+<div class="section-head">
+<h2>📚 Anime Series</h2>
+<span id="seriesCount"></span>
+</div>
+
+<div class="series-grid" id="seriesGrid"></div>
+
+</section>
+
+<section class="section">
+
+<div class="section-head">
+<h2>🎬 Explore Anime</h2>
+<span id="feedCount"></span>
+</div>
+
+<div class="filters">
+
+<button class="filter active" onclick="setFilter('latest',this)">
+🆕 Latest
+</button>
+
+<button class="filter" onclick="setFilter('trending',this)">
+🔥 Trending
+</button>
+
+<button class="filter" onclick="setFilter('long',this)">
+🎬 Long Videos
+</button>
+
+<button class="filter" onclick="setFilter('short',this)">
+⚡ Shorts
+</button>
+
+</div>
+
+<div class="video-grid" id="videoGrid"></div>
+
+</section>
+
+<section class="section">
+
+<div class="section-head">
+<h2>🔥 Trending</h2>
+</div>
+
+<div class="video-grid" id="trendingGrid"></div>
+
+</section>
+
+<section class="section">
+
+<div class="section-head">
+<h2>⚡ Shorts & Reels</h2>
+</div>
+
+<div class="shorts" id="shortGrid"></div>
+
+</section>
+
+<section class="section hidden" id="profileSection">
+
+<div class="section-head">
+<h2>👤 My Profile</h2>
+</div>
+
+<div class="profile">
+
+<img
+class="avatar"
+id="profileAvatar"
+src="https://dummyimage.com/200x200/171117/ffffff&text=User"
+>
+
+<h2 id="profileName">User</h2>
+
+<p
+id="profileEmail"
+style="color:#77717e;font-size:11px"
+></p>
+
+<div class="stats">
+
+<div class="stat">
+<b id="profileVideos">0</b>
+<small>Videos</small>
+</div>
+
+<div class="stat">
+<b id="profileViews">0</b>
+<small>Views</small>
+</div>
+
+<div class="stat">
+<b id="profileLikes">0</b>
+<small>Likes</small>
+</div>
+
+</div>
+
+<button class="btn" onclick="logout()">
+Log out
+</button>
+
+</div>
+</section>
+<div class="modal" id="authModal">
+
+<div class="box">
+
+<div class="top">
+
+<div>
+<h2>👤 Anime.in Account</h2>
+
+<p style="color:#77717e;font-size:12px;margin-top:3px">
+Create your account or login.
+</p>
+</div>
+
+<button class="close" onclick="closeModal('authModal')">
+×
+</button>
+
+</div>
+
+<div class="tabs">
+
+<button
+class="tab active"
+id="signupTab"
+onclick="switchAuth('signup')"
+>
+Sign Up
+</button>
+
+<button
+class="tab"
+id="loginTab"
+onclick="switchAuth('login')"
+>
+Login
+</button>
+
+</div>
+
+<div class="field">
+
+<label>Email</label>
+
+<input
+class="input"
+id="authEmail"
+type="email"
+placeholder="you@example.com"
+>
+
+</div>
+
+<div class="field">
+
+<label>Password</label>
+
+<input
+class="input"
+id="authPassword"
+type="password"
+placeholder="Minimum 6 characters"
+>
+
+</div>
+
+<button
+class="form-btn"
+id="authSubmit"
+onclick="submitAuth()"
+>
+🚀 Create Account
+</button>
+
+<button
+class="forgot"
+onclick="forgotPassword()"
+>
+Forgot password?
+</button>
+
+<div
+class="message hidden"
+id="authMessage"
+></div>
+
+</div>
+
+</div>
+
+
+<div class="modal" id="createModal">
+
+<div class="box">
+
+<div class="top">
+
+<div>
+
+<h2>＋ Create on Anime.in</h2>
+
+<p style="color:#77717e;font-size:12px;margin-top:3px">
+Upload a video or create a series.
+</p>
+
+</div>
+
+<button
+class="close"
+onclick="closeModal('createModal')"
+>
+×
+</button>
+
+</div>
+
+
+<div class="tabs">
+
+<button
+class="tab active"
+id="uploadTab"
+onclick="switchCreate('upload')"
+>
+🎬 Upload Video
+</button>
+
+<button
+class="tab"
+id="seriesTab"
+onclick="switchCreate('series')"
+>
+📚 Create Series
+</button>
+
+</div>
+
+
+<div id="uploadForm">
+
+<div class="field">
+
+<label>Title</label>
+
+<input
+class="input"
+id="uploadTitle"
+placeholder="Episode title"
+>
+
+</div>
+
+
+<div class="field">
+
+<label>Description</label>
+
+<textarea
+class="textarea"
+id="uploadDescription"
+placeholder="Describe your anime..."
+></textarea>
+
+</div>
+
+
+<div class="field">
+
+<label>Type</label>
+
+<select
+class="select"
+id="uploadType"
+>
+
+<option value="long">
+Long Anime Video
+</option>
+
+<option value="short">
+Short / Reel
+</option>
+
+</select>
+
+</div>
+
+
+<div class="field">
+
+<label>Series</label>
+
+<select
+class="select"
+id="uploadSeries"
+>
+
+<option value="">
+No series
+</option>
+
+</select>
+
+</div>
+
+
+<div class="field">
+
+<label>Episode Number</label>
+
+<input
+class="input"
+id="episodeNumber"
+type="number"
+min="1"
+placeholder="1"
+>
+
+</div>
+
+
+<div class="field">
+
+<label>Thumbnail Image URL</label>
+
+<input
+class="input"
+id="thumbnailUrl"
+placeholder="https://..."
+>
+
+</div>
+
+
+<div class="field">
+
+<label>Video File</label>
+
+<input
+class="input"
+id="videoFile"
+type="file"
+accept="video/*"
+>
+
+</div>
+
+
+<div class="upload-box">
+
+<div
+id="uploadStatus"
+style="font-size:12px;color:#aaa3b0"
+>
+Select a video and upload.
+</div>
+
+<div class="progress">
+
+<i id="uploadBar"></i>
+
+</div>
+
+</div>
+
+
+<button
+class="form-btn"
+onclick="uploadVideo()"
+>
+🚀 Upload Video
+</button>
+
+</div>
+
+
+<div
+id="seriesForm"
+class="hidden"
+>
+
+<div class="field">
+
+<label>Series Name</label>
+
+<input
+class="input"
+id="seriesTitle"
+placeholder="My Fan Anime"
+>
+
+</div>
+
+
+<div class="field">
+
+<label>Description</label>
+
+<textarea
+class="textarea"
+id="seriesDescription"
+placeholder="Series description"
+></textarea>
+
+</div>
+
+
+<div class="field">
+
+<label>Genre</label>
+
+<input
+class="input"
+id="seriesGenre"
+placeholder="Action, Fantasy..."
+>
+
+</div>
+
+
+<div class="field">
+
+<label>Cover Image URL</label>
+
+<input
+class="input"
+id="seriesCover"
+placeholder="https://..."
+>
+
+</div>
+
+
+<button
+class="form-btn"
+onclick="createSeries()"
+>
+📚 Create Series
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+
+<div class="player" id="player">
+
+<div class="player-inner">
+
+<div
+style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"
+>
+
+<b style="color:#ff1744;font-size:20px">
+Anime.in
+</b>
+
+<button
+class="btn"
+onclick="closePlayer()"
+>
+← Back
+</button>
+
+</div>
+
+
+<video
+id="videoPlayer"
+controls
+playsinline
+></video>
+
+
+<div
+class="player-title"
+id="playerTitle"
+></div>
+
+
+<div
+class="player-meta"
+id="playerMeta"
+></div>
+
+
+<div class="player-actions">
+
+<button
+class="btn"
+id="likeBtn"
+onclick="toggleLike()"
+>
+❤️ Like
+</button>
+
+<button
+class="btn"
+id="saveBtn"
+onclick="toggleSave()"
+>
+🔖 Save
+</button>
+
+<button
+class="btn"
+onclick="shareVideo()"
+>
+🔗 Share
+</button>
+
+</div>
+
+
+<div
+class="description"
+id="playerDescription"
+></div>
+
+
+<div class="section">
+
+<h3>
+▶️ Next Episode
+</h3>
+
+<div id="nextEpisode"></div>
+
+</div>
+
+
+<div class="section">
+
+<h3>
+💬 Comments
+</h3>
+
+
+<div class="comment-form">
+
+<input
+class="input"
+id="commentInput"
+placeholder="Write a comment..."
+>
+
+<button
+class="btn primary"
+onclick="addComment()"
+>
+Send
+</button>
+
+</div>
+
+
+<div id="comments"></div>
+
+</div>
+
+</div>
+
+</div>
+<div class="modal" id="seriesModal">
+
+<div class="box wide">
+
+<div class="top">
+
+<div>
+
+<h2 id="seriesViewerTitle">
+Anime Series
+</h2>
+
+<p
+id="seriesViewerDescription"
+style="color:#77717e;font-size:12px;margin-top:4px"
+></p>
+
+</div>
+
+<button
+class="close"
+onclick="closeModal('seriesModal')"
+>
+×
+</button>
+
+</div>
+
+
+<img
+id="seriesViewerCover"
+style="width:100%;max-height:300px;object-fit:cover;border-radius:13px"
+src="https://dummyimage.com/1200x500/160b12/ffffff&text=Anime.in"
+>
+
+
+<div
+id="episodeList"
+style="margin-top:15px"
+></div>
+
+</div>
+
+</div>
+
+
+<div class="toast" id="toast"></div>
+
+
+<script>
+
+const firebaseConfig = {
+
+apiKey: "PASTE_YOUR_FIREBASE_API_KEY_HERE",
+
+authDomain: "animein-fe9c8.firebaseapp.com",
+
+projectId: "animein-fe9c8",
+
+storageBucket: "animein-fe9c8.appspot.com",
+
+messagingSenderId:
+"PASTE_YOUR_MESSAGING_SENDER_ID_HERE",
+
+appId:
+"PASTE_YOUR_FIREBASE_APP_ID_HERE"
+
+};
+
+
+let firebaseReady = false;
+
+let auth = null;
+
+let db = null;
+
+let storage = null;
+
+let currentUser = null;
+
+let videos = [];
+
+let series = [];
+
+let filter = "latest";
+
+let currentVideo = null;
+
+
+try {
+
+if (
+firebaseConfig.apiKey.startsWith("PASTE_")
+) {
+
+throw new Error(
+"Firebase config not completed"
+);
+
+}
+
+
+firebase.initializeApp(firebaseConfig);
+
+auth = firebase.auth();
+
+db = firebase.firestore();
+
+storage = firebase.storage();
+
+firebaseReady = true;
+
+
+auth.onAuthStateChanged(user => {
+
+currentUser = user;
+
+updateAccount();
+
+if (user) {
+
+loadProfile();
+
+}
+
+});
+
+} catch(e) {
+
+console.warn(
+"Firebase is not configured:",
+e.message
+);
+
+}
+
+
+function toast(msg) {
+
+const t =
+document.getElementById("toast");
+
+t.textContent = msg;
+
+t.classList.add("show");
+
+clearTimeout(window._toast);
+
+window._toast = setTimeout(() => {
+
+t.classList.remove("show");
+
+},2500);
+
+}
+
+
+function closeModal(id) {
+
+document
+.getElementById(id)
+.classList.remove("show");
+
+}
+
+
+function openAuth() {
+
+document
+.getElementById("authModal")
+.classList.add("show");
+
+}
+
+
+function openCreate() {
+
+if (!currentUser) {
+
+openAuth();
+
+toast(
+"🔐 Login first to create or upload."
+);
+
+return;
+
+}
+
+
+document
+.getElementById("createModal")
+.classList.add("show");
+
+
+loadSeriesOptions();
+
+}
+
+
+function switchAuth(mode) {
+
+document
+.getElementById("signupTab")
+.classList
+.toggle(
+"active",
+mode === "signup"
+);
+
+
+document
+.getElementById("loginTab")
+.classList
+.toggle(
+"active",
+mode === "login"
+);
+
+
+document
+.getElementById("authSubmit")
+.textContent =
+mode === "signup"
+?
+"🚀 Create Account"
+:
+"🔐 Login";
+
+
+document
+.getElementById("authSubmit")
+.dataset.mode = mode;
+
+
+document
+.getElementById("authMessage")
+.classList
+.add("hidden");
+
+}
+
+
+function switchCreate(mode) {
+
+document
+.getElementById("uploadTab")
+.classList
+.toggle(
+"active",
+mode === "upload"
+);
+
+
+document
+.getElementById("seriesTab")
+.classList
+.toggle(
+"active",
+mode === "series"
+);
+
+
+document
+.getElementById("uploadForm")
+.classList
+.toggle(
+"hidden",
+mode !== "upload"
+);
+
+
+document
+.getElementById("seriesForm")
+.classList
+.toggle(
+"hidden",
+mode !== "series"
+);
+
+}
+
+
+function msg(text) {
+
+const m =
+document.getElementById("authMessage");
+
+m.textContent = text;
+
+m.classList.remove("hidden");
+
+}
+
+
+async function submitAuth() {
+
+if (!firebaseReady) {
+
+msg(
+"Firebase config is not completed in this file."
+);
+
+return;
+
+}
+
+
+const email =
+document
+.getElementById("authEmail")
+.value
+.trim();
+
+
+const pass =
+document
+.getElementById("authPassword")
+.value;
+
+
+const mode =
+document
+.getElementById("authSubmit")
+.dataset.mode ||
+"signup";
+
+
+if (!email || !pass) {
+
+msg(
+"Enter email and password."
+);
+
+return;
+
+}
+
+
+try {
+
+if (mode === "signup") {
+
+const c =
+await auth
+.createUserWithEmailAndPassword(
+email,
+pass
+);
+
+
+await db
+.collection("users")
+.doc(c.user.uid)
+.set({
+
+email: email,
+
+displayName:
+email.split("@")[0],
+
+createdAt:
+firebase.firestore.FieldValue
+.serverTimestamp()
+
+},{
+merge:true
+});
+
+
+toast(
+"✅ Account created"
+);
+
+
+closeModal("authModal");
+
+
+} else {
+
+await auth
+.signInWithEmailAndPassword(
+email,
+pass
+);
+
+
+toast(
+"✅ Logged in"
+);
+
+
+closeModal("authModal");
+
+}
+
+} catch(e) {
+
+msg(e.message);
+
+}
+
+}
+
+
+async function forgotPassword() {
+
+if (!firebaseReady) {
+
+msg(
+"Firebase config is not completed."
+);
+
+return;
+
+}
+
+
+const email =
+document
+.getElementById("authEmail")
+.value
+.trim();
+
+
+if (!email) {
+
+msg(
+"Enter your email first."
+);
+
+return;
+
+}
+
+
+try {
+
+await auth
+.sendPasswordResetEmail(email);
+
+
+msg(
+"📩 Password reset email sent."
+);
+
+
+} catch(e) {
+
+msg(e.message);
+
+}
+
+}
+
+
+async function logout() {
+
+if (auth) {
+
+await auth.signOut();
+
+}
+
+toast(
+"Logged out"
+);
+
+
+}
+
+
+function updateAccount() {
+
+document
+.getElementById("accountBtn")
+.textContent =
+currentUser
+?
+"👤 Account"
+:
+"👤 Login";
+
+
+document
+.getElementById("profileSection")
+.classList
+.toggle(
+"hidden",
+!currentUser
+);
+
+}
+async function createSeries(){
+
+if(!currentUser){
+
+openAuth();
+
+return;
+
+}
+
+
+const title =
+document
+.getElementById("seriesTitle")
+.value
+.trim();
+
+
+const description =
+document
+.getElementById("seriesDescription")
+.value
+.trim();
+
+
+const genre =
+document
+.getElementById("seriesGenre")
+.value
+.trim();
+
+
+const coverUrl =
+document
+.getElementById("seriesCover")
+.value
+.trim();
+
+
+if(!title){
+
+toast(
+"Enter a series name."
+);
+
+return;
+
+}
+
+
+try{
+
+await db
+.collection("series")
+.add({
+
+title,
+
+description,
+
+genre,
+
+coverUrl,
+
+ownerId:
+currentUser.uid,
+
+episodeCount:0,
+
+createdAt:
+firebase.firestore
+.FieldValue
+.serverTimestamp()
+
+});
+
+
+toast(
+"📚 Series created"
+);
+
+
+closeModal("createModal");
+
+await loadData();
+
+
+}catch(e){
+
+toast(e.message);
+
+}
+
+}
+
+
+
+async function loadSeriesOptions(){
+
+if(!db) return;
+
+
+try{
+
+const snap =
+await db
+.collection("series")
+.limit(100)
+.get();
+
+
+const select =
+document
+.getElementById("uploadSeries");
+
+
+select.innerHTML =
+'<option value="">No series</option>';
+
+
+snap.forEach(d => {
+
+const s = d.data();
+
+
+select.insertAdjacentHTML(
+
+"beforeend",
+
+`<option value="${d.id}">
+${esc(s.title || "Untitled")}
+</option>`
+
+);
+
+});
+
+
+}catch(e){}
+
+}
+
+
+
+async function uploadVideo(){
+
+if(
+!firebaseReady ||
+!currentUser
+){
+
+toast(
+"🔐 Login required."
+);
+
+return;
+
+}
+
+
+const file =
+document
+.getElementById("videoFile")
+.files[0];
+
+
+const title =
+document
+.getElementById("uploadTitle")
+.value
+.trim();
+
+
+const description =
+document
+.getElementById("uploadDescription")
+.value
+.trim();
+
+
+const type =
+document
+.getElementById("uploadType")
+.value;
+
+
+const seriesId =
+document
+.getElementById("uploadSeries")
+.value;
+
+
+const episodeNumber =
+Number(
+document
+.getElementById("episodeNumber")
+.value || 0
+);
+
+
+const thumbnailUrl =
+document
+.getElementById("thumbnailUrl")
+.value
+.trim();
+
+
+if(!file || !title){
+
+toast(
+"Add a title and video file."
+);
+
+return;
+
+}
+
+
+if(
+file.size >
+1024 * 1024 * 1024
+){
+
+toast(
+"Video is larger than 1 GB."
+);
+
+return;
+
+}
+
+
+const bar =
+document
+.getElementById("uploadBar");
+
+
+const status =
+document
+.getElementById("uploadStatus");
+
+
+const path =
+`videos/${currentUser.uid}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g,"_")}`;
+
+
+try{
+
+const task =
+storage
+.ref(path)
+.put(file);
+
+
+task.on(
+
+"state_changed",
+
+s => {
+
+const p =
+(s.bytesTransferred /
+s.totalBytes) * 100;
+
+
+bar.style.width =
+p + "%";
+
+
+status.textContent =
+`Uploading ${Math.round(p)}%`;
+
+},
+
+
+e => {
+
+status.textContent =
+e.message;
+
+},
+
+
+async () => {
+
+const videoUrl =
+await task.snapshot
+.ref
+.getDownloadURL();
+
+
+await db
+.collection("videos")
+.add({
+
+title,
+
+description,
+
+type,
+
+seriesId,
+
+episodeNumber,
+
+thumbnailUrl,
+
+videoUrl,
+
+storagePath:path,
+
+ownerId:
+currentUser.uid,
+
+views:0,
+
+likes:0,
+
+createdAt:
+firebase.firestore
+.FieldValue
+.serverTimestamp()
+
+});
+
+
+if(seriesId){
+
+await db
+.collection("series")
+.doc(seriesId)
+.update({
+
+episodeCount:
+firebase.firestore
+.FieldValue
+.increment(1)
+
+});
+
+}
+
+
+status.textContent =
+"✅ Upload complete";
+
+
+toast(
+"🎉 Video uploaded"
+);
+
+
+await loadData();
+
+}
+
+);
+
+
+}catch(e){
+
+status.textContent =
+e.message;
+
+}
+
+}
+
+
+
+async function loadData(){
+
+if(!db){
+
+renderHome();
+
+return;
+
+}
+
+
+try{
+
+const [vs,ss] =
+await Promise.all([
+
+db
+.collection("videos")
+.limit(100)
+.get(),
+
+db
+.collection("series")
+.limit(50)
+.get()
+
+]);
+
+
+videos =
+vs.docs.map(d => ({
+id:d.id,
+...d.data()
+}));
+
+
+series =
+ss.docs.map(d => ({
+id:d.id,
+...d.data()
+}));
+
+
+renderHome();
+
+renderSeries();
+
+
+}catch(e){
+
+console.error(e);
+
+renderHome();
+
+}
+
+}
+
+
+
+function setFilter(f,el){
+
+filter = f;
+
+
+document
+.querySelectorAll(".filter")
+.forEach(x =>
+x.classList.remove("active")
+);
+
+
+el.classList.add("active");
+
+
+renderHome();
+
+}
+
+
+
+function renderHome(){
+
+let list =
+[...videos];
+
+
+let q =
+document
+.getElementById("searchInput")
+.value
+.trim()
+.toLowerCase();
+
+
+if(q){
+
+list =
+list.filter(v =>
+(v.title || "")
+.toLowerCase()
+.includes(q) ||
+
+(v.description || "")
+.toLowerCase()
+.includes(q)
+);
+
+}
+
+
+if(filter === "trending"){
+
+list.sort(
+(a,b) =>
+(b.views || 0) -
+(a.views || 0)
+);
+
+}
+
+
+else if(filter === "latest"){
+
+list.sort(
+(a,b) =>
+dateVal(b) -
+dateVal(a)
+);
+
+}
+
+
+else if(filter === "long"){
+
+list =
+list.filter(
+v => v.type !== "short"
+);
+
+}
+
+
+else if(filter === "short"){
+
+list =
+list.filter(
+v => v.type === "short"
+);
+
+}
+
+
+const grid =
+document
+.getElementById("videoGrid");
+
+
+document
+.getElementById("feedCount")
+.textContent =
+list.length + " videos";
+
+
+grid.innerHTML =
+list
+.filter(v => v.type !== "short")
+.slice(0,24)
+.map(card)
+.join("") ||
+
+'<div class="empty">
+🎬 No videos found.
+</div>';
+
+
+document
+.getElementById("trendingGrid")
+.innerHTML =
+
+[...videos]
+.sort(
+(a,b) =>
+(b.views || 0) -
+(a.views || 0)
+)
+.filter(
+v => v.type !== "short"
+)
+.slice(0,8)
+.map(card)
+.join("") ||
+
+'<div class="empty">
+🔥 No trending videos yet.
+</div>';
+
+
+document
+.getElementById("shortGrid")
+.innerHTML =
+
+videos
+.filter(
+v => v.type === "short"
+)
+.slice(0,18)
+.map(shortCard)
+.join("") ||
+
+'<div class="empty">
+⚡ No Shorts uploaded yet.
+</div>';
+
+}
+
+
+
+function renderSeries(){
+
+const g =
+document
+.getElementById("seriesGrid");
+
+
+document
+.getElementById("seriesCount")
+.textContent =
+series.length +
+" series";
+
+
+g.innerHTML =
+series.map(s => `
+
+<div
+class="series-card"
+onclick="openSeries('${s.id}')"
+>
+
+<img
+src="${safeUrl(s.coverUrl)}"
+onerror="this.src='https://dummyimage.com/900x450/160b12/ffffff&text=Anime.in'"
+>
+
+<div>
+
+${esc(
+s.title || "Untitled Series"
+)}
+
+<div
+style="color:#77717e;font-size:10px;margin-top:4px"
+>
+
+${s.episodeCount || 0}
+Episodes
+
+</div>
+
+</div>
+
+</div>
+
+`).join("") ||
+
+'<div class="empty">
+📚 No series yet.
+</div>';
+
+}
+
+
+
+function card(v){
+
+return `
+
+<div
+class="card"
+onclick="openPlayer('${v.id}')"
+>
+
+<div class="thumb">
+
+<img
+src="${safeUrl(v.thumbnailUrl)}"
+onerror="this.src='https://dummyimage.com/640x360/151118/ffffff&text=Anime.in'"
+>
+
+<div class="play">
+
+<b>▶</b>
+
+</div>
+
+</div>
+
+
+<div class="card-title">
+
+${esc(
+v.title || "Untitled"
+)}
+
+</div>
+
+
+<div class="card-meta">
+
+👁️ ${fmt(v.views || 0)}
+
+•
+
+❤️ ${fmt(v.likes || 0)}
+
+</div>
+
+</div>
+
+`;
+
+}
+
+
+
+function shortCard(v){
+
+return `
+
+<div
+class="short"
+onclick="openPlayer('${v.id}')"
+>
+
+<img
+src="${safeUrl(v.thumbnailUrl)}"
+onerror="this.src='https://dummyimage.com/400x700/171117/ffffff&text=Short'"
+>
+
+<div class="short-info">
+
+<div class="short-title">
+
+${esc(
+v.title || "Short"
+)}
+
+</div>
+
+<div class="short-meta">
+
+👁️ ${fmt(v.views || 0)}
+
+</div>
+
+</div>
+
+</div>
+
+`;
+
+}
+function dateVal(v){
+
+return v.createdAt &&
+v.createdAt.toMillis
+?
+v.createdAt.toMillis()
+:
+0;
+
+}
+
+
+function fmt(n){
+
+return Intl.NumberFormat(
+"en",
+{
+notation:"compact",
+maximumFractionDigits:1
+}
+).format(
+Number(n) || 0
+);
+
+}
+
+
+function esc(s){
+
+return String(s || "")
+.replace(
+/[&<>"']/g,
+m => ({
+
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#039;"
+
+}[m])
+);
+
+}
+
+
+function safeUrl(u){
+
+return /^https?:\/\//i.test(
+String(u || "")
+)
+?
+String(u)
+:
+"https://dummyimage.com/640x360/151118/ffffff&text=Anime.in";
+
+}
+
+
+
+async function openPlayer(id){
+
+const v =
+videos.find(
+x => x.id === id
+);
+
+if(!v) return;
+
+
+currentVideo = v;
+
+
+document
+.getElementById("player")
+.classList
+.add("show");
+
+
+document.body.style.overflow =
+"hidden";
+
+
+const p =
+document.getElementById("videoPlayer");
+
+
+p.src =
+v.videoUrl || "";
+
+
+p.load();
+
+
+document
+.getElementById("playerTitle")
+.textContent =
+v.title || "Untitled";
+
+
+document
+.getElementById("playerMeta")
+.textContent =
+
+`${fmt(v.views || 0)} views • ${fmt(v.likes || 0)} likes`;
+
+
+document
+.getElementById("playerDescription")
+.textContent =
+v.description ||
+"No description.";
+
+
+if(firebaseReady){
+
+try{
+
+await db
+.collection("videos")
+.doc(id)
+.update({
+
+views:
+firebase.firestore
+.FieldValue
+.increment(1)
+
+});
+
+
+v.views =
+(v.views || 0) + 1;
+
+
+}catch(e){}
+
+}
+
+
+await updateLikeSave();
+
+await loadComments();
+
+await loadNext();
+
+}
+
+
+
+function closePlayer(){
+
+const p =
+document.getElementById(
+"videoPlayer"
+);
+
+
+p.pause();
+
+
+p.removeAttribute("src");
+
+
+p.load();
+
+
+document
+.getElementById("player")
+.classList
+.remove("show");
+
+
+document.body.style.overflow =
+"";
+
+}
+
+
+
+async function toggleLike(){
+
+if(!currentUser){
+
+openAuth();
+
+toast(
+"🔐 Login to like."
+);
+
+return;
+
+}
+
+
+const ref =
+db
+.collection("videos")
+.doc(currentVideo.id)
+.collection("likes")
+.doc(currentUser.uid);
+
+
+const d =
+await ref.get();
+
+
+try{
+
+if(d.exists){
+
+await ref.delete();
+
+
+await db
+.collection("videos")
+.doc(currentVideo.id)
+.update({
+
+likes:
+firebase.firestore
+.FieldValue
+.increment(-1)
+
+});
+
+}
+
+else{
+
+await ref.set({
+
+createdAt:
+firebase.firestore
+.FieldValue
+.serverTimestamp()
+
+});
+
+
+await db
+.collection("videos")
+.doc(currentVideo.id)
+.update({
+
+likes:
+firebase.firestore
+.FieldValue
+.increment(1)
+
+});
+
+}
+
+
+await updateLikeSave();
+
+await loadData();
+
+
+}catch(e){
+
+toast(e.message);
+
+}
+
+}
+
+
+
+async function updateLikeSave(){
+
+const lb =
+document.getElementById(
+"likeBtn"
+);
+
+
+const sb =
+document.getElementById(
+"saveBtn"
+);
+
+
+if(!currentUser){
+
+lb.textContent =
+"❤️ Like";
+
+
+sb.textContent =
+"🔖 Save";
+
+
+return;
+
+}
+
+
+try{
+
+const l =
+await db
+.collection("videos")
+.doc(currentVideo.id)
+.collection("likes")
+.doc(currentUser.uid)
+.get();
+
+
+lb.textContent =
+l.exists
+?
+"❤️ Liked"
+:
+"❤️ Like";
+
+
+const s =
+await db
+.collection("users")
+.doc(currentUser.uid)
+.collection("saved")
+.doc(currentVideo.id)
+.get();
+
+
+sb.textContent =
+s.exists
+?
+"🔖 Saved"
+:
+"🔖 Save";
+
+
+}catch(e){}
+
+}
+
+
+
+async function toggleSave(){
+
+if(!currentUser){
+
+openAuth();
+
+toast(
+"🔐 Login to save."
+);
+
+return;
+
+}
+
+
+const ref =
+db
+.collection("users")
+.doc(currentUser.uid)
+.collection("saved")
+.doc(currentVideo.id);
+
+
+const d =
+await ref.get();
+
+
+if(d.exists){
+
+await ref.delete();
+
+}
+
+else{
+
+await ref.set({
+
+videoId:
+currentVideo.id,
+
+createdAt:
+firebase.firestore
+.FieldValue
+.serverTimestamp()
+
+});
+
+}
+
+
+updateLikeSave();
+
+}
+
+
+
+async function addComment(){
+
+if(!currentUser){
+
+openAuth();
+
+toast(
+"🔐 Login to comment."
+);
+
+return;
+
+}
+
+
+const input =
+document.getElementById(
+"commentInput"
+);
+
+
+const text =
+input.value.trim();
+
+
+if(!text) return;
+
+
+try{
+
+await db
+.collection("videos")
+.doc(currentVideo.id)
+.collection("comments")
+.add({
+
+userId:
+currentUser.uid,
+
+userName:
+currentUser.email
+.split("@")[0],
+
+text,
+
+createdAt:
+firebase.firestore
+.FieldValue
+.serverTimestamp()
+
+});
+
+
+input.value = "";
+
+loadComments();
+
+
+}catch(e){
+
+toast(e.message);
+
+}
+
+}
+
+
+
+async function loadComments(){
+
+const box =
+document.getElementById(
+"comments"
+);
+
+
+box.innerHTML = "";
+
+
+if(!db || !currentVideo)
+return;
+
+
+try{
+
+const s =
+await db
+.collection("videos")
+.doc(currentVideo.id)
+.collection("comments")
+.orderBy(
+"createdAt",
+"desc"
+)
+.limit(50)
+.get();
+
+
+box.innerHTML =
+
+s.docs
+.map(d => {
+
+const c =
+d.data();
+
+
+return `
+
+<div class="comment">
+
+<strong>
+👤 ${esc(c.userName || "User")}
+</strong>
+
+<p>
+${esc(c.text)}
+</p>
+
+</div>
+
+`;
+
+})
+.join("") ||
+
+'<div style="color:#77717e;font-size:11px;margin-top:12px">
+No comments yet.
+</div>';
+
+
+}catch(e){
+
+box.innerHTML =
+
+'<div style="color:#77717e;font-size:11px;margin-top:12px">
+Comments unavailable.
+</div>';
+
+}
+
+}
+async function loadNext(){
+
+const box =
+document.getElementById(
+"nextEpisode"
+);
+
+box.innerHTML = "";
+
+if(
+!currentVideo ||
+!currentVideo.seriesId ||
+!db
+){
+
+return;
+
+}
+
+try{
+
+const s =
+await db
+.collection("videos")
+.where(
+"seriesId",
+"==",
+currentVideo.seriesId
+)
+.limit(100)
+.get();
+
+
+let a =
+s.docs.map(d => ({
+id:d.id,
+...d.data()
+}))
+.sort(
+(x,y) =>
+(x.episodeNumber || 0) -
+(y.episodeNumber || 0)
+);
+
+
+let i =
+a.findIndex(
+x => x.id === currentVideo.id
+);
+
+
+let n =
+a[i + 1];
+
+
+if(n){
+
+box.innerHTML = `
+
+<div
+class="next"
+onclick="openPlayer('${n.id}')"
+>
+
+<img
+src="${safeUrl(n.thumbnailUrl)}"
+>
+
+<div>
+
+<b>
+Episode ${n.episodeNumber || ""}
+—
+${esc(n.title || "Next Episode")}
+</b>
+
+<small
+style="color:#77717e;font-size:9px"
+>
+Watch next episode
+</small>
+
+</div>
+
+▶
+
+</div>
+
+`;
+
+}
+
+}catch(e){}
+
+}
+
+
+
+async function shareVideo(){
+
+try{
+
+if(navigator.share){
+
+await navigator.share({
+
+title:
+currentVideo.title ||
+"Anime.in",
+
+text:
+"Watch this on Anime.in",
+
+url:
+location.href
+
+});
+
+}
+
+else{
+
+await navigator.clipboard
+.writeText(location.href);
+
+toast(
+"🔗 Link copied"
+);
+
+}
+
+}catch(e){}
+
+}
+
+
+
+async function openSeries(id){
+
+const s =
+series.find(
+x => x.id === id
+);
+
+if(!s) return;
+
+
+document
+.getElementById("seriesModal")
+.classList
+.add("show");
+
+
+document
+.getElementById("seriesViewerTitle")
+.textContent =
+s.title ||
+"Anime Series";
+
+
+document
+.getElementById("seriesViewerDescription")
+.textContent =
+s.description ||
+"";
+
+
+document
+.getElementById("seriesViewerCover")
+.src =
+safeUrl(s.coverUrl);
+
+
+const list =
+document.getElementById(
+"episodeList"
+);
+
+
+let eps =
+videos
+.filter(
+v => v.seriesId === id
+)
+.sort(
+(a,b) =>
+(a.episodeNumber || 0) -
+(b.episodeNumber || 0)
+);
+
+
+list.innerHTML =
+
+eps.map(v => `
+
+<div
+class="next"
+onclick="
+closeModal('seriesModal');
+openPlayer('${v.id}')
+"
+>
+
+<img
+src="${safeUrl(v.thumbnailUrl)}"
+>
+
+<div>
+
+<b>
+Episode ${v.episodeNumber || ""}
+—
+${esc(v.title || "Episode")}
+</b>
+
+<small
+style="color:#77717e;font-size:9px"
+>
+${fmt(v.views || 0)} views
+</small>
+
+</div>
+
+▶
+
+</div>
+
+`).join("") ||
+
+'<div class="empty">
+No episodes yet.
+</div>';
+
+}
+
+
+
+async function loadProfile(){
+
+if(
+!currentUser ||
+!db
+){
+
+return;
+
+}
+
+
+document
+.getElementById("profileSection")
+.classList
+.remove("hidden");
+
+
+try{
+
+const u =
+await db
+.collection("users")
+.doc(currentUser.uid)
+.get();
+
+
+const d =
+u.exists
+?
+u.data()
+:
+{};
+
+
+document
+.getElementById("profileName")
+.textContent =
+d.displayName ||
+currentUser.email
+.split("@")[0];
+
+
+document
+.getElementById("profileEmail")
+.textContent =
+currentUser.email;
+
+
+const mine =
+videos.filter(
+v =>
+v.ownerId ===
+currentUser.uid
+);
+
+
+document
+.getElementById("profileVideos")
+.textContent =
+mine.length;
+
+
+document
+.getElementById("profileViews")
+.textContent =
+fmt(
+mine.reduce(
+(a,v) =>
+a + (v.views || 0),
+0
+)
+);
+
+
+document
+.getElementById("profileLikes")
+.textContent =
+fmt(
+mine.reduce(
+(a,v) =>
+a + (v.likes || 0),
+0
+)
+);
+
+
+}catch(e){}
+
+}
+
+
+
+document.addEventListener(
+"keydown",
+e => {
+
+if(e.key === "Escape"){
+
+closeModal("authModal");
+
+closeModal("createModal");
+
+closeModal("seriesModal");
+
+closePlayer();
+
+}
+
+}
+);
+
+
+window.addEventListener(
+"load",
+() => {
+
+switchAuth("signup");
+
+loadData();
+
+}
+);
+</script>
+
+</body>
+
+</html>
